@@ -1,16 +1,12 @@
-# 🔐 Face Verification System
+# Face Verification System
 
 > A biometric face verification system using ArcFace embeddings and PostgreSQL vector search
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791.svg)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-A high-accuracy face verification system that combines deep learning facial embeddings with efficient vector similarity search. Built with the ArcFace model for feature extraction and PostgreSQL's pgvector extension for scalable identity matching.
+A face verification system that combines deep learning facial embeddings with efficient vector similarity search. Built with the ArcFace model for feature extraction and PostgreSQL's pgvector extension for scalable identity matching.
 
 ---
 
-## ✨ Features
+## Features
 
 - **Real-time Face Registration** - Capture and register faces using webcam
 - **High-Accuracy Verification** - ArcFace model with 512-dimensional embeddings
