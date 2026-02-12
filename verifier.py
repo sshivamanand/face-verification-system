@@ -1,10 +1,8 @@
 import numpy as np
-import os
 from deepface import DeepFace
-
+from db import get_connection
 
 MODEL_NAME = "ArcFace"
-DATABASE_DIR = "database"
 
 
 def get_embedding(img_path):
@@ -19,44 +17,35 @@ def get_embedding(img_path):
     return np.array(result[0]["embedding"])
 
 
-def cosine_similarity(emb1, emb2):
-    return np.dot(emb1, emb2) / (
-        np.linalg.norm(emb1) * np.linalg.norm(emb2)
+def search_face(query_embedding):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT name, embedding <=> %s AS distance
+        FROM faces
+        ORDER BY embedding <=> %s
+        LIMIT 1;
+        """,
+        (query_embedding, query_embedding)
     )
 
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
 
-def check_if_exists(test_embedding):
-
-    if not os.path.exists(DATABASE_DIR):
+    if result is None:
         return 0, "DATABASE EMPTY"
 
-    files = [f for f in os.listdir(DATABASE_DIR) if f.endswith(".npy")]
+    name, distance = result
+    similarity = (1 - distance) * 100
 
-    if len(files) == 0:
-        return 0, "DATABASE EMPTY"
-
-    best_similarity = -1
-
-    for file in files:
-
-        emb_path = os.path.join(DATABASE_DIR, file)
-
-        stored_embedding = np.load(emb_path)
-
-        similarity = cosine_similarity(test_embedding, stored_embedding)
-
-        if similarity > best_similarity:
-            best_similarity = similarity
-
-    similarity_percent = best_similarity * 100
-
-    if similarity_percent >= 80:
-        decision = "FACE ALREADY REGISTERED"
-
-    elif similarity_percent >= 65:
-        decision = "LIKELY MATCH"
-
+    if similarity >= 80:
+        decision = f"MATCH FOUND: {name}"
+    elif similarity >= 65:
+        decision = f"POSSIBLE MATCH: {name}"
     else:
         decision = "NO MATCH FOUND"
 
-    return similarity_percent, decision
+    return similarity, decision
