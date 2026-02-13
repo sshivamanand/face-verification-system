@@ -1,31 +1,82 @@
 # Face Verification System
 
-> A biometric face verification system using ArcFace embeddings and PostgreSQL vector search
-
-A face verification system that combines deep learning facial embeddings with efficient vector similarity search. Built with the ArcFace model for feature extraction and PostgreSQL's pgvector extension for scalable identity matching.
+**A real-time biometric face verification system powered by ArcFace embeddings and PostgreSQL vector search**
 
 ---
 
-## Features
+## Overview
 
-- **Real-time Face Registration** - Capture and register faces using webcam
-- **High-Accuracy Verification** - ArcFace model with 512-dimensional embeddings
-- **Fast Vector Search** - PostgreSQL pgvector with optimized IVFFlat indexing
-- **Confidence Scoring** - Cosine similarity-based match confidence
-- **Production-Ready** - Modular architecture with proper separation of concerns
-- **Easy Configuration** - Environment-based settings management
+This system leverages deep learning embeddings and vector similarity search to identify individuals from webcam input in real-time. It extracts 512-dimensional facial embeddings using the ArcFace model and performs efficient cosine similarity searches in PostgreSQL with the pgvector extension.
 
 ---
 
-## 🛠️ Technologies
+## Key Features
 
-| Component | Technology |
-|-----------|------------|
-| **Language** | Python 3.8+ |
-| **Deep Learning** | DeepFace (ArcFace model) |
-| **Computer Vision** | OpenCV, RetinaFace |
-| **Database** | PostgreSQL 13+ |
-| **Vector Search** | pgvector extension |
+-  **Real-time face capture** using OpenCV
+-  **Deep learning embeddings** using ArcFace (via DeepFace)
+-  **512-dimensional vectors** for high accuracy
+-  **PostgreSQL vector database** with pgvector extension
+-  **Cosine similarity search** for nearest neighbor retrieval
+-  **Complete pipeline**: Registration + Verification
+-  **Duplicate detection** using similarity thresholds
+-  **Modular architecture** for easy scaling
+
+---
+
+
+1. **Capture** face via webcam
+2. **Extract** 512-dimensional ArcFace embedding
+3. **Store** embedding in PostgreSQL (registration) OR **Compare** with stored vectors (verification)
+4. **Return** identity match with similarity score
+
+---
+
+## Tech Stack
+
+### Languages
+- **Python** 3.8+
+
+### Libraries & Frameworks
+- **DeepFace** - ArcFace model for face embeddings
+- **OpenCV** - Real-time video capture and processing
+- **NumPy** - Numerical operations on vectors
+- **psycopg2** - PostgreSQL database adapter
+
+### Database
+- **PostgreSQL** 13+
+- **pgvector** - Vector similarity search extension
+
+### Core Concepts
+- Deep Metric Learning
+- Face Embeddings
+- Vector Similarity Search
+- Cosine Distance
+- Nearest Neighbor Retrieval
+
+---
+
+##  How It Works
+
+###  Registration Flow
+
+1. Capture face image using webcam
+2. Extract 512D embedding using ArcFace
+3. Check if similar face already exists (duplicate detection)
+4. If unique, store embedding in PostgreSQL
+
+###  Verification Flow
+
+1. Capture face image from webcam
+2. Extract 512D embedding using ArcFace
+3. Compare against all database embeddings using cosine similarity
+4. Return closest match with similarity score
+
+**Similarity Calculation:**
+
+**Decision Thresholds:**
+- **≥ 80%** → Match Found
+- **65–79%** → Possible Match
+- **< 65%** → No Match
 
 ---
 
@@ -34,115 +85,77 @@ A face verification system that combines deep learning facial embeddings with ef
 ```
 face-verification-system/
 │
-├── main.py                      # Face verification script
-├── register.py                  # Face registration script
-├── verifier.py                  # Embedding extraction and search logic
-├── db.py                        # PostgreSQL connection handler
-├── requirements.txt             # Python dependencies
-├── face_verification.ipynb      # Interactive demo notebook
-├── .env                         # Environment variables (not committed)
-├── .gitignore                   # Git ignore rules
-└── README.md                    # This file
+├── main.py              # Verification pipeline
+├── register.py          # Face registration script
+├── verifier.py          # Embedding extraction logic
+├── db.py                # Database connection and queries
+├── requirements.txt     # Python dependencies
+└── README.md            # Documentation
 ```
 
 ---
 
-## Quick Start
+##  Installation
 
-### Prerequisites
-
-- Python 3.8 or higher
-- PostgreSQL 13 or higher
-- Webcam (for registration and verification)
-
-### 1. Database Setup
-
-**Install PostgreSQL and pgvector extension:**
-
-```bash
-# On Ubuntu/Debian
-sudo apt-get install postgresql postgresql-contrib
-
-# Install pgvector
-git clone https://github.com/pgvector/pgvector.git
-cd pgvector
-make
-sudo make install
-```
-
-**Create and configure database:**
-
-```sql
--- Connect to PostgreSQL
-psql -U postgres
-
--- Create database
-CREATE DATABASE face_verification_db;
-\c face_verification_db;
-
--- Enable pgvector extension
-CREATE EXTENSION vector;
-
--- Create faces table
-CREATE TABLE faces (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    embedding VECTOR(512),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create optimized vector index
-CREATE INDEX faces_embedding_idx
-ON faces
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-
--- Update statistics
-ANALYZE faces;
-```
-
-### 2. Environment Configuration
-
-Create a `.env` file in the project root:
-
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=face_verification_db
-DB_USER=your_username
-DB_PASSWORD=your_password
-```
-
-### 3. Installation
-
-**Clone the repository:**
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/sshivamanand/face-verification-system.git
 cd face-verification-system
 ```
 
-**Create virtual environment:**
+### 2. Create Virtual Environment
 
 ```bash
 python -m venv venv
 
-# On Linux/Mac
+# On Linux/Mac:
 source venv/bin/activate
 
-# On Windows
+# On Windows:
 venv\Scripts\activate
 ```
 
-**Install dependencies:**
+### 3. Install Python Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
+### 4. Install PostgreSQL and pgvector
+
+**PostgreSQL:**
+- Download from [postgresql.org/download](https://www.postgresql.org/download/)
+- Install and start the PostgreSQL service
+
+**pgvector Extension:**
+
+Connect to your PostgreSQL database and run:
+
+```sql
+CREATE EXTENSION vector;
+```
+
+### 5. Create Database Table
+
+```sql
+CREATE TABLE faces (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    embedding vector(512) NOT NULL
+);
+```
+
+**Optional: Create index for faster searches**
+
+```sql
+CREATE INDEX ON faces USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+```
+
 ---
 
-## 💻 Usage
+##  Usage
 
 ### Register a New Face
 
@@ -150,78 +163,77 @@ pip install -r requirements.txt
 python register.py
 ```
 
-**Steps:**
-1. Webcam window opens automatically
-2. Position your face in the frame
-3. Press **SPACE** to capture
-4. Enter the person's name when prompted
-5. Embedding is extracted and stored in PostgreSQL
+**What happens:**
+1. Opens webcam
+2. Prompts you to press `SPACE` to capture
+3. Asks for name input
+4. Stores face embedding in database
 
-**Output:**
+**Example Output:**
 ```
-Opening webcam for registration...
-Press SPACE to capture face, ESC to exit
-Face captured!
-Enter person name: John Doe
-Extracting facial embedding...
-Storing in database...
-✓ Successfully registered: John Doe
+Webcam opened
+Press SPACE to capture image
+
+Extracting embedding...
+Enter name: Shivam
+
+✓ Face registered successfully!
 ```
 
-### Verify a Face
+---
+
+### Verify Face
 
 ```bash
 python main.py
 ```
 
-**Steps:**
-1. Webcam window opens automatically
-2. Position your face in the frame
-3. Press **SPACE** to capture
-4. System searches the database
-5. Results displayed with confidence score
+**What happens:**
+1. Opens webcam
+2. Press `SPACE` to capture face
+3. Searches database for matches
+4. Returns similarity score and identity
 
 **Example Output:**
 ```
-Opening webcam for verification...
-Press SPACE to verify face, ESC to exit
-Face captured!
+Webcam opened
+Press SPACE to capture image
+
 Extracting embedding...
 Searching in vector database...
 
-╔══════════════════════════════╗
-║      VERIFICATION RESULT     ║
-╠══════════════════════════════╣
-║ Similarity: 94.23%           ║
-║ Decision: ✓ MATCH FOUND      ║
-║ Identity: John Doe           ║
-╚══════════════════════════════╝
+Result:
+----------
+Similarity: 91.23%
+✓ MATCH FOUND: Shivam
 ```
 
 ---
 
-## Key Concepts
+## ⚡ Performance
 
-### ArcFace Embeddings
-- **512-dimensional** feature vectors
-- State-of-the-art face recognition accuracy
-- Trained on millions of face images
-- Angular margin loss for better discrimination
+| Metric | Value |
+|--------|-------|
+| **Embedding Dimension** | 512 |
+| **Inference Latency** | ~200–500 ms per verification (CPU) |
+| **Database Retrieval** | O(log n) with vector indexing |
+| **Similarity Metric** | Cosine Distance |
 
-### Vector Similarity Search
-- **Cosine similarity** for measuring face similarity
-- **IVFFlat indexing** for fast approximate nearest neighbor search
-- Optimized for high-dimensional vectors
-- Scalable to millions of faces
+---
 
-### Production Optimizations
-- Database connection pooling
-- Efficient indexing strategies
-- Modular code architecture
-- Environment-based configuration
+### Database Schema
+
+```sql
+Table: faces
+├── id (SERIAL PRIMARY KEY)
+├── name (TEXT)
+└── embedding (vector(512))
+```
 
 ---
 
 ## License
 
 This project is licensed under the MIT License.
+
+---
